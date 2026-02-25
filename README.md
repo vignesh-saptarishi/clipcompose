@@ -12,25 +12,32 @@ All layout, text, and styling is declared in YAML manifests. The tool is content
 ## Install
 
 ```bash
-pip install .
-
-# With dev dependencies (pytest):
-pip install -e ".[dev]"
+pip install git+https://github.com/vignesh-saptarishi/clipcompose.git
 ```
 
-Requires Python >= 3.10. Spatial rendering works out of the box (moviepy bundles ffmpeg).
+Requires Python >= 3.10. ffmpeg is bundled automatically via moviepy.
+
+For development (editable install with pytest):
+
+```bash
+git clone https://github.com/vignesh-saptarishi/clipcompose.git
+cd clipcompose
+pip install -e ".[dev]"
+```
 
 ## Getting Started
 
 A built-in demo generates synthetic test clips and renders all 9 templates:
 
 ```bash
-pip install .
+git clone https://github.com/vignesh-saptarishi/clipcompose.git
+cd clipcompose
+pip install -e .
 
 # Generate 12 short test clips (varied durations, colored with END frames)
 python examples/generate_demo_clips.py
 
-# Render all sections (10 sections covering every template)
+# Render all sections (add --workers 4 to parallelize)
 clipcompose --manifest examples/demo-all-templates.yaml \
   --output examples/demo-renders/ --render-all
 
