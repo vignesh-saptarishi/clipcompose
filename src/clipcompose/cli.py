@@ -24,12 +24,16 @@ Usage:
 
 import argparse
 import os
+import shutil
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-# Use system ffmpeg (has NVENC) instead of moviepy's bundled one (no GPU).
-os.environ.setdefault("IMAGEIO_FFMPEG_EXE", "/usr/bin/ffmpeg")
+# Prefer system ffmpeg (has NVENC) over moviepy's bundled one (no GPU).
+# shutil.which is the cross-platform standard for finding system binaries.
+_sys_ffmpeg = shutil.which("ffmpeg")
+if _sys_ffmpeg:
+    os.environ.setdefault("IMAGEIO_FFMPEG_EXE", _sys_ffmpeg)
 
 from .manifest import load_manifest, validate_paths
 from .overlays import apply_overlays_to_frame
