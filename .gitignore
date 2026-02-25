@@ -8,3 +8,5 @@ build/
 .pytest_cache/
 *.so
 .venv/
+examples/demo-clips/
+examples/demo-renders/

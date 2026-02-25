@@ -318,8 +318,8 @@ def main():
         help="Render every section to --output directory (one mp4 each)",
     )
     parser.add_argument(
-        "--workers", type=int, default=os.cpu_count(),
-        help="Number of parallel workers for --render-all (default: CPU count)",
+        "--workers", type=int, default=1,
+        help="Number of parallel workers for --render-all (default: 1)",
     )
     parser.add_argument(
         "--gpu", action="store_true",

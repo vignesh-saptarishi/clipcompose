@@ -1,0 +1,44 @@
+# Assembly manifest for demo-all-templates.yaml rendered sections.
+# Run after rendering all sections with the spatial manifest.
+#
+# Usage:
+#   clipcompose-assemble --manifest examples/demo-all-templates-assembly.yaml \
+#     --output examples/demo-renders/assembled.mp4
+
+video:
+  fps: 30
+  transition: 1.0
+  transition_type: fade_to_black
+
+paths:
+  renders: "examples/demo-renders"
+
+sections:
+  - path: "${renders}/section-00-intro.mp4"
+    transition: 1.0
+    transition_type: fade_to_black
+  - path: "${renders}/section-01-overview.mp4"
+    transition: 0.5
+    transition_type: crossfade
+  - path: "${renders}/section-02-single.mp4"
+    transition: 0.5
+    transition_type: crossfade
+  - path: "${renders}/section-03-side-by-side.mp4"
+    transition: 0.5
+    transition_type: crossfade
+  - path: "${renders}/section-04-four-grid.mp4"
+    transition: 0.5
+    transition_type: crossfade
+  - path: "${renders}/section-05-three-wide.mp4"
+    transition: 0.5
+    transition_type: crossfade
+  - path: "${renders}/section-06-eight-grid.mp4"
+    transition: 1.0
+    transition_type: fade_to_black
+  - path: "${renders}/section-07-twelve-grid.mp4"
+    transition: 1.0
+    transition_type: fade_to_black
+  - path: "${renders}/section-08-paired.mp4"
+    transition: 1.0
+    transition_type: fade_to_black
+  - path: "${renders}/section-09-outro.mp4"
