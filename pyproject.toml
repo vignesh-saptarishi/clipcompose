@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clipcompose"
+version = "0.1.0"
+description = "Manifest-driven video composition — spatial layouts and temporal assembly"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "Vignesh Saptarishi" },
+]
+dependencies = [
+    "numpy",
+    "Pillow",
+    "moviepy>=2.0",
+    "PyYAML",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+clipcompose = "clipcompose.cli:main"
+clipcompose-assemble = "clipcompose.assemble_cli:main"
+
+[project.urls]
+Repository = "https://github.com/vignesh-saptarishi/clipcompose"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clipcompose"]
