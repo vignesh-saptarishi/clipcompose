@@ -5,6 +5,7 @@ text rendering, and clip loading.
 Cherry-picked from v1 video_templates.common (stable, tested functions).
 """
 
+import os
 import re
 from pathlib import Path
 
@@ -14,12 +15,18 @@ from moviepy import VideoFileClip
 
 
 # ── Font paths ─────────────────────────────────────────────────────
-# Inter preferred for clean research visuals, DejaVu Sans as fallback.
+# CLIPCOMPOSE_FONT env var overrides, then Inter, then DejaVu Sans.
 
-FONT_PATHS = [
-    Path.home() / ".local/share/fonts/Inter.ttc",
-    Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
-]
+def _font_paths() -> list[Path]:
+    """Build font fallback chain. Checked on each call so env var changes
+    are picked up (useful in tests with monkeypatch)."""
+    paths = []
+    env_font = os.environ.get("CLIPCOMPOSE_FONT")
+    if env_font:
+        paths.append(Path(env_font))
+    paths.append(Path.home() / ".local/share/fonts/Inter.ttc")
+    paths.append(Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
+    return paths
 
 
 # ── Color utilities ────────────────────────────────────────────────
@@ -65,13 +72,14 @@ def resolve_path_vars(text: str, paths: dict[str, str]) -> str:
 # ── Font loading ───────────────────────────────────────────────────
 
 def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """Load Inter (or fallback) at the given size.
+    """Load a font at the given size using the fallback chain.
 
-    Inter.ttc is a font collection. Index 0 = Regular, index 1 = Italic.
-    For bold, callers increase the size slightly since Inter.ttc doesn't
-    have a separate bold face accessible by index in Pillow.
+    Chain: CLIPCOMPOSE_FONT env var -> Inter.ttc -> DejaVu Sans -> Pillow default.
+    Inter.ttc is a font collection; index 0 = Regular. For bold, callers
+    increase the size slightly since Inter.ttc doesn't have a separate bold
+    face accessible by index in Pillow.
     """
-    for font_path in FONT_PATHS:
+    for font_path in _font_paths():
         if font_path.exists():
             try:
                 return ImageFont.truetype(str(font_path), size=size, index=0)

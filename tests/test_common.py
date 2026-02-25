@@ -70,6 +70,33 @@ class TestLoadFont:
         assert large is not None
 
 
+class TestLoadFontEnvVar:
+    def test_env_var_overrides_default(self, tmp_path, monkeypatch):
+        """CLIPCOMPOSE_FONT pointing to a valid font is used first."""
+        import os
+        # DejaVu Sans should exist on most Linux systems.
+        dejavu = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+        if not os.path.exists(dejavu):
+            pytest.skip("DejaVu Sans not available")
+        monkeypatch.setenv("CLIPCOMPOSE_FONT", dejavu)
+        font = load_font(size=20)
+        assert font is not None
+        # Verify it actually loaded (not the Pillow default bitmap font).
+        assert hasattr(font, "path")
+
+    def test_env_var_nonexistent_path_falls_through(self, monkeypatch):
+        """CLIPCOMPOSE_FONT pointing to nonexistent file falls through to defaults."""
+        monkeypatch.setenv("CLIPCOMPOSE_FONT", "/nonexistent/font.ttf")
+        font = load_font(size=20)
+        assert font is not None  # Should still get a font from fallback chain.
+
+    def test_env_var_unset_uses_defaults(self, monkeypatch):
+        """Without CLIPCOMPOSE_FONT, default fallback chain is used."""
+        monkeypatch.delenv("CLIPCOMPOSE_FONT", raising=False)
+        font = load_font(size=20)
+        assert font is not None
+
+
 class TestRenderTextOnImage:
     def test_renders_without_error(self):
         img = Image.new("RGB", (400, 100), (0, 0, 0))
