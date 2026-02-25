@@ -27,7 +27,7 @@ clipcompose = "clipcompose.cli:main"
 clipcompose-assemble = "clipcompose.assemble_cli:main"
 
 [project.urls]
-Repository = "https://github.com/vignesh-saptarishi/clipcompose"
+Repository = "https://github.com/saptaxis/clipcompose"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/clipcompose"]

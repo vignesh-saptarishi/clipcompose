@@ -12,7 +12,7 @@ All layout, text, and styling is declared in YAML manifests. The tool is content
 ## Install
 
 ```bash
-pip install git+https://github.com/vignesh-saptarishi/clipcompose.git
+pip install git+https://github.com/saptaxis/clipcompose.git
 ```
 
 Requires Python >= 3.10. ffmpeg is bundled automatically via moviepy.
@@ -20,7 +20,7 @@ Requires Python >= 3.10. ffmpeg is bundled automatically via moviepy.
 For development (editable install with pytest):
 
 ```bash
-git clone https://github.com/vignesh-saptarishi/clipcompose.git
+git clone https://github.com/saptaxis/clipcompose.git
 cd clipcompose
 pip install -e ".[dev]"
 ```
@@ -30,7 +30,7 @@ pip install -e ".[dev]"
 A built-in demo generates synthetic test clips and renders all 9 templates:
 
 ```bash
-git clone https://github.com/vignesh-saptarishi/clipcompose.git
+git clone https://github.com/saptaxis/clipcompose.git
 cd clipcompose
 pip install -e .
 
