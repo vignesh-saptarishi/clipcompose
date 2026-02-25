@@ -18,7 +18,7 @@ pip install .
 pip install -e ".[dev]"
 ```
 
-Requires Python >= 3.10.
+Requires Python >= 3.10. Spatial rendering works out of the box (moviepy bundles ffmpeg).
 
 ## Getting Started
 
@@ -97,20 +97,18 @@ clipcompose --manifest manifest.yaml --output renders/ --render-all
 clipcompose --manifest manifest.yaml --output renders/ --render-all --workers 4
 clipcompose --manifest manifest.yaml --output out.mp4 --preview-duration 2
 clipcompose --manifest manifest.yaml --validate
-clipcompose --manifest manifest.yaml --output out.mp4 --gpu
 ```
 
 ### clipcompose-assemble (temporal assembly)
 
 ```bash
 clipcompose-assemble --manifest assembly.yaml --output final.mp4
-clipcompose-assemble --manifest assembly.yaml --output final.mp4 --gpu
 ```
 
 ## Requirements
 
 - **Python >= 3.10**
-- **ffmpeg** — system install, needed for assembly CLI and GPU encoding (`--gpu`)
+- **ffmpeg** (optional) — a bundled copy is used automatically via moviepy. Only needed separately if you want to run ffmpeg directly on the output.
 - **Inter font** (optional) — for best text rendering. Falls back to DejaVu Sans, then Pillow default. Override with `CLIPCOMPOSE_FONT` env var.
 
 ## Documentation

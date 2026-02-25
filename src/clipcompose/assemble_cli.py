@@ -21,28 +21,22 @@ Usage:
 """
 
 import argparse
-import json
 import subprocess
 from pathlib import Path
+
+import imageio_ffmpeg
+from moviepy import VideoFileClip
 
 from .assembly_manifest import load_assembly_manifest, validate_assembly_paths
 
 
-def _codec_params(codec):
-    """Return (codec, ffmpeg_params) for the given codec name."""
-    if codec == "h264_nvenc":
-        return codec, ["-cq", "20", "-pix_fmt", "yuv420p"]
-    return codec, ["-crf", "20", "-pix_fmt", "yuv420p"]
+_FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 def _get_duration(path):
-    """Get video duration in seconds using ffprobe."""
-    result = subprocess.run(
-        ["ffprobe", "-v", "quiet", "-print_format", "json",
-         "-show_format", str(path)],
-        capture_output=True, text=True, check=True,
-    )
-    return float(json.loads(result.stdout)["format"]["duration"])
+    """Get video duration in seconds using moviepy."""
+    with VideoFileClip(path) as clip:
+        return clip.duration
 
 
 def _build_filter_graph(sections):
@@ -153,7 +147,6 @@ def _build_filter_graph(sections):
 def assemble(
     manifest_path: str,
     output_path: str,
-    codec: str = "h264_nvenc",
 ) -> None:
     """Load assembly manifest, validate paths, assemble via native ffmpeg.
 
@@ -164,7 +157,6 @@ def assemble(
     Args:
         manifest_path: Path to YAML assembly manifest.
         output_path: Output mp4 path.
-        codec: Video codec — "h264_nvenc" for GPU, "libx264" for CPU.
     """
     config = load_assembly_manifest(manifest_path)
     validate_assembly_paths(config)
@@ -177,22 +169,22 @@ def assemble(
         print("No sections to assemble.")
         return
 
-    # Probe durations via ffprobe (fast, no decoding).
+    # Probe durations.
     print(f"Probing {len(sections)} sections...")
     for i, sec in enumerate(sections):
         sec["duration"] = _get_duration(sec["path"])
         print(f"  [{i}] {sec['duration']:.1f}s  {sec['path']}")
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    codec_name, codec_ffparams = _codec_params(codec)
+    _codec_params = ["-crf", "20", "-pix_fmt", "yuv420p"]
 
     n = len(sections)
 
     # Single section: just re-encode.
     if n == 1:
         cmd = [
-            "ffmpeg", "-y", "-i", sections[0]["path"],
-            "-c:v", codec_name, *codec_ffparams,
+            _FFMPEG, "-y", "-i", sections[0]["path"],
+            "-c:v", "libx264", *_codec_params,
             "-r", str(fps), "-an", output_path,
         ]
         print(f"Single section — re-encoding to {output_path}")
@@ -209,11 +201,11 @@ def assemble(
         inputs.extend(["-i", sec["path"]])
 
     cmd = [
-        "ffmpeg", "-y",
+        _FFMPEG, "-y",
         *inputs,
         "-filter_complex", filter_graph,
         "-map", out_label,
-        "-c:v", codec_name, *codec_ffparams,
+        "-c:v", "libx264", *_codec_params,
         "-r", str(fps),
         "-an",
         output_path,
@@ -239,10 +231,6 @@ def main():
         help="Output mp4 path (required unless --validate)",
     )
     parser.add_argument(
-        "--gpu", action="store_true",
-        help="Use GPU encoding (h264_nvenc). Default is CPU (libx264).",
-    )
-    parser.add_argument(
         "--validate", action="store_true",
         help="Validate manifest only — check paths, don't render",
     )
@@ -262,7 +250,7 @@ def main():
     if not args.output:
         parser.error("--output is required (unless using --validate)")
 
-    assemble(args.manifest, args.output, codec="h264_nvenc" if args.gpu else "libx264")
+    assemble(args.manifest, args.output)
 
 
 if __name__ == "__main__":

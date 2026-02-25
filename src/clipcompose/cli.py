@@ -23,17 +23,9 @@ Usage:
 """
 
 import argparse
-import os
-import shutil
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-
-# Prefer system ffmpeg (has NVENC) over moviepy's bundled one (no GPU).
-# shutil.which is the cross-platform standard for finding system binaries.
-_sys_ffmpeg = shutil.which("ffmpeg")
-if _sys_ffmpeg:
-    os.environ.setdefault("IMAGEIO_FFMPEG_EXE", _sys_ffmpeg)
 
 from .manifest import load_manifest, validate_paths
 from .overlays import apply_overlays_to_frame
@@ -117,27 +109,16 @@ def _render_section(section_config, video_settings, colors, preview_duration):
     return clip
 
 
-def _codec_params(codec):
-    """Return (codec, ffmpeg_params) for the given codec name.
-
-    h264_nvenc uses -cq for quality (GPU), libx264 uses -crf (CPU).
-    """
-    if codec == "h264_nvenc":
-        return codec, ["-cq", "20", "-pix_fmt", "yuv420p"]
-    return codec, ["-crf", "20", "-pix_fmt", "yuv420p"]
-
-
-def _export_clip(clip, output_path, fps, codec="libx264", quiet=False):
+def _export_clip(clip, output_path, fps, quiet=False):
     """Write a clip to mp4 with standard encoding settings."""
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    codec_name, ffmpeg_params = _codec_params(codec)
     clip.write_videofile(
         str(output_path),
         fps=fps,
-        codec=codec_name,
+        codec="libx264",
         audio=False,
         preset="medium",
-        ffmpeg_params=ffmpeg_params,
+        ffmpeg_params=["-crf", "20", "-pix_fmt", "yuv420p"],
         logger=None if quiet else "bar",
     )
 
@@ -160,7 +141,7 @@ def _render_and_export_one(args):
     The quiet flag suppresses moviepy's progress bar to avoid interleaved
     output from multiple workers.
     """
-    index, section_config, video_settings, colors, preview_duration, output_path, fps, codec, quiet = args
+    index, section_config, video_settings, colors, preview_duration, output_path, fps, quiet = args
     template = section_config["template"]
     header = (section_config.get("header") or section_config.get("title", "")).replace("\n", " ")
     subtitle = (section_config.get("subtitle") or "").replace("\n", " ")
@@ -170,7 +151,7 @@ def _render_and_export_one(args):
     print(f"  START  {label}", flush=True)
     t0 = time.monotonic()
     clip = _render_section(section_config, video_settings, colors, preview_duration)
-    _export_clip(clip, output_path, fps, codec=codec, quiet=quiet)
+    _export_clip(clip, output_path, fps, quiet=quiet)
     elapsed = time.monotonic() - t0
     print(f"  DONE   {label} — {clip.duration:.1f}s video, {elapsed:.1f}s wall", flush=True)
     return index, label, clip.duration, str(output_path)
@@ -186,7 +167,6 @@ def compose(
     render_all: bool = False,
     preview_duration: float | None = None,
     workers: int = 1,
-    codec: str = "libx264",
 ) -> None:
     """Load manifest, validate, render section(s), export mp4(s).
 
@@ -206,7 +186,6 @@ def compose(
         preview_duration: If set, cap each section to this many seconds.
         workers: Number of parallel worker processes for --render-all.
             1 = sequential, >1 = parallel via ProcessPoolExecutor.
-        codec: Video codec — "h264_nvenc" for GPU, "libx264" for CPU.
     """
     config = load_manifest(manifest_path)
     validate_paths(config)
@@ -237,7 +216,7 @@ def compose(
         print(f"  Duration: {clip.duration:.1f}s")
         print(f"\nResolution: {resolution[0]}x{resolution[1]}, {fps}fps")
         print(f"Writing to: {output_path}")
-        _export_clip(clip, output_path, fps, codec=codec)
+        _export_clip(clip, output_path, fps)
         print(f"\nDone: {output_path}")
         return
 
@@ -254,7 +233,7 @@ def compose(
         work = []
         for i, sc in enumerate(sections):
             fpath = str(out_dir / _section_filename(i, sc))
-            work.append((i, sc, video_settings, colors, preview_duration, fpath, fps, codec, parallel))
+            work.append((i, sc, video_settings, colors, preview_duration, fpath, fps, parallel))
 
         t_start = time.monotonic()
 
@@ -290,7 +269,7 @@ def compose(
 
     print(f"\nResolution: {resolution[0]}x{resolution[1]}, {fps}fps")
     print(f"Writing to: {output_path}")
-    _export_clip(final, output_path, fps, codec=codec)
+    _export_clip(final, output_path, fps)
     print(f"\nDone: {output_path}")
 
 
@@ -320,10 +299,6 @@ def main():
     parser.add_argument(
         "--workers", type=int, default=1,
         help="Number of parallel workers for --render-all (default: 1)",
-    )
-    parser.add_argument(
-        "--gpu", action="store_true",
-        help="Use GPU encoding (h264_nvenc). Default is CPU (libx264).",
     )
     parser.add_argument(
         "--preview-duration", type=float, default=None,
@@ -360,7 +335,6 @@ def main():
         render_all=args.render_all,
         preview_duration=args.preview_duration,
         workers=args.workers,
-        codec="h264_nvenc" if args.gpu else "libx264",
     )
 
 
