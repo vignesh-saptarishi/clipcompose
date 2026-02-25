@@ -20,9 +20,28 @@ pip install -e ".[dev]"
 
 Requires Python >= 3.10.
 
-## Quick Start
+## Getting Started
 
-Create a manifest (`manifest.yaml`):
+A built-in demo generates synthetic test clips and renders all 9 templates:
+
+```bash
+pip install .
+
+# Generate 12 short test clips (varied durations, colored with END frames)
+python examples/generate_demo_clips.py
+
+# Render all sections (10 sections covering every template)
+clipcompose --manifest examples/demo-all-templates.yaml \
+  --output examples/demo-renders/ --render-all
+
+# Assemble into a single video with transitions
+clipcompose-assemble --manifest examples/demo-all-templates-assembly.yaml \
+  --output examples/demo-renders/assembled.mp4
+```
+
+See `examples/demo-all-templates.yaml` for a complete manifest covering every template type.
+
+## Writing Your Own Manifest
 
 ```yaml
 video:
@@ -48,11 +67,11 @@ sections:
           weight: bold
 ```
 
-Render it:
-
 ```bash
 clipcompose --manifest manifest.yaml --output section.mp4 --section 0
 ```
+
+See `examples/template-spatial.yaml` for the full schema reference with all templates and options documented.
 
 ## Templates
 
