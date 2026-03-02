@@ -19,10 +19,10 @@ def main(args=None):
     subparsers = parser.add_subparsers(dest="command")
 
     # Register subcommands. Each delegates to its own module's main().
-    subparsers.add_parser("compose", help="Spatial composition from YAML manifest")
-    subparsers.add_parser("assemble", help="Temporal assembly of pre-rendered sections")
-    subparsers.add_parser("transcribe", help="Transcribe video/audio with word timestamps")
-    subparsers.add_parser("cut", help="Cut clips from source video")
+    subparsers.add_parser("compose", help="Spatial composition from YAML manifest", add_help=False)
+    subparsers.add_parser("assemble", help="Temporal assembly of pre-rendered sections", add_help=False)
+    subparsers.add_parser("transcribe", help="Transcribe video/audio with word timestamps", add_help=False)
+    subparsers.add_parser("cut", help="Cut clips from source video", add_help=False)
 
     # Parse only the subcommand name, pass the rest to the subcommand's parser.
     parsed, remaining = parser.parse_known_args(args)
