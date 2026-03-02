@@ -21,9 +21,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+transcribe = [
+    "faster-whisper",
+    "pyannote.audio",
+]
 
 [project.scripts]
-clipcompose = "clipcompose.cli:main"
+clipcompose = "clipcompose.main:main"
+clipcompose-compose = "clipcompose.cli:main"
 clipcompose-assemble = "clipcompose.assemble_cli:main"
 
 [project.urls]
