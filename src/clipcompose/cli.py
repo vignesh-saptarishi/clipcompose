@@ -276,7 +276,7 @@ def compose(
 # ── CLI entry point ───────────────────────────────────────────────
 
 
-def main():
+def main(args=None):
     parser = argparse.ArgumentParser(
         description="V3 compositor — render YAML manifest to mp4.",
     )
@@ -308,7 +308,7 @@ def main():
         "--validate", action="store_true",
         help="Validate manifest only — check paths, don't render",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     if args.validate:
         config = load_manifest(args.manifest)

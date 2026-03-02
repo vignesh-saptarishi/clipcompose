@@ -218,7 +218,7 @@ def assemble(
     print(f"\nDone: {output_path}")
 
 
-def main():
+def main(args=None):
     parser = argparse.ArgumentParser(
         description="Assembly CLI — merge pre-rendered sections into a final video.",
     )
@@ -234,7 +234,7 @@ def main():
         "--validate", action="store_true",
         help="Validate manifest only — check paths, don't render",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     if args.validate:
         config = load_assembly_manifest(args.manifest)
