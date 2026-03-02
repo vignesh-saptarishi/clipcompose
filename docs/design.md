@@ -607,11 +607,125 @@ Encoding settings are not part of the manifest — the manifest describes conten
 - Native ffmpeg filter graph assembly (not moviepy). Groups consecutive crossfade clips with xfade, joins groups at fade_to_black boundaries with concat. No frame-by-frame processing.
 - Same `${var}` path resolution system as spatial manifests.
 
+## CLI Restructure
+
+The package exposes a unified `clipcompose` entry point with subcommands:
+
+```bash
+clipcompose compose    # spatial manifest → rendered section mp4s
+clipcompose assemble   # assembly manifest → final mp4 via native ffmpeg
+clipcompose transcribe # audio → word-level transcript JSON
+clipcompose cut        # extract clips from a source video
+```
+
+Legacy aliases remain available for backwards compatibility:
+
+- `clipcompose-compose` → equivalent to `clipcompose compose`
+- `clipcompose-assemble` → equivalent to `clipcompose assemble`
+
+The subcommand dispatcher lives in `main.py` and delegates to the existing CLI modules.
+
+## Transcription
+
+```bash
+clipcompose transcribe source.mp4
+```
+
+Produces a JSON transcript with word-level timestamps and optional speaker diarization. Designed as a pre-processing step before using `cut` to extract clips.
+
+**Output format:**
+
+```json
+{
+  "source": "source.mp4",
+  "duration_s": 142.7,
+  "model": "base",
+  "language": "en",
+  "diarized": true,
+  "words": [
+    {"start": 0.12, "end": 0.54, "text": "Hello", "speaker": "SPEAKER_00"},
+    {"start": 0.60, "end": 1.02, "text": "world", "speaker": "SPEAKER_00"}
+  ]
+}
+```
+
+**Flags:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--model` | `base` | faster-whisper model size (`tiny`, `base`, `small`, `medium`, `large`) |
+| `--language` | auto-detect | Force a specific language code (e.g. `en`) |
+| `--no-diarize` | off | Skip speaker diarization (omits `speaker` field from words) |
+| `--output` | `<source>.json` | Output path for transcript JSON |
+
+**Dependencies:** faster-whisper + pyannote.audio are optional. Install with:
+
+```bash
+pip install clipcompose[transcribe]
+```
+
+## Cutting
+
+```bash
+clipcompose cut ...
+```
+
+Extracts one or more clips from a source video. Audio is preserved in all output clips.
+
+### Single mode
+
+```bash
+clipcompose cut source.mp4 --start 12.5 --end 34.0 --output clip.mp4
+```
+
+Extracts a single segment by start/end time (seconds).
+
+### Batch mode
+
+```bash
+clipcompose cut --manifest cuts.yaml --output-dir clips/
+```
+
+Extracts multiple segments from one or more source files, driven by a cuts manifest.
+
+**Cuts manifest format:**
+
+```yaml
+source: "interview.mp4"      # default source for all cuts (can be overridden per cut)
+paths:
+  footage: "/data/footage"   # optional ${var} substitution
+
+cuts:
+  - id: intro
+    start: 0.0
+    end: 15.5
+  - id: key-moment
+    start: 142.3
+    end: 167.0
+    source: "${footage}/b-roll.mp4"   # per-cut source override
+```
+
+Output filenames default to `<id>.mp4` within `--output-dir`.
+
+### Re-encode vs copy
+
+| Mode | Flag | Speed | Accuracy |
+|------|------|-------|----------|
+| Re-encode (default) | — | Slower | Frame-accurate |
+| Stream copy | `--copy` | Fast | Keyframe-aligned |
+
+Re-encode is the default because it guarantees exact start/end frames. Use `--copy` when speed matters and keyframe-aligned cuts are acceptable.
+
+### Idempotency
+
+By default, `cut` skips output files that already exist. Use `--force` to overwrite existing files.
+
 ## Code Structure
 
 ```
 src/clipcompose/
     __init__.py              # package init
+    main.py                  # subcommand dispatcher (compose, assemble, transcribe, cut)
     common.py                # hex color parsing, font loading, path resolution, clip loading
     manifest.py              # spatial manifest: load + validate (all templates, label uniqueness)
     atoms.py                 # AnnotatedClip: measure + render
@@ -621,6 +735,11 @@ src/clipcompose/
     assembly_manifest.py     # assembly manifest: load + validate
     assembly.py              # moviepy-based temporal assembly (alternative to native ffmpeg)
     assemble_cli.py          # assembly manifest → native ffmpeg filter graph → export mp4
+    cuts_manifest.py         # cuts manifest: load + validate (source, paths, cuts list)
+    cut.py                   # video cutting operations (single + batch, re-encode + copy)
+    cut_cli.py               # cut subcommand CLI (single mode + batch manifest mode)
+    transcribe.py            # transcription pipeline (faster-whisper + pyannote diarization)
+    transcribe_cli.py        # transcribe subcommand CLI
 
 examples/
     template-spatial.yaml    # all 9 templates documented with field tables and examples
@@ -631,5 +750,4 @@ examples/
 
 - Generic NxM grids (fixed shapes only: 2x1, 2x2, 3x1, 2x4, 3x4)
 - Portrait mode
-- Audio handling
 - Static image template (plots/diagrams — future scope)
