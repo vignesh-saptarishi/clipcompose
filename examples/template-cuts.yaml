@@ -1,0 +1,30 @@
+# Cuts manifest template — extract clips from a source video.
+#
+# Usage:
+#   clipcompose cut source.mp4 --manifest cuts.yaml --output-dir clips/
+#   clipcompose cut --manifest cuts.yaml --output-dir clips/
+#
+# Cut modes:
+#   Re-encode (default) — frame-accurate cuts, slower.
+#   Stream-copy (--copy) — fast but keyframe-aligned, may drift ~2-5s.
+#
+# Idempotent: existing outputs are skipped. Use --force to overwrite.
+
+# Path variables — referenced as ${name} in source path.
+# paths:
+#   raw: "/data/recordings"
+
+source: "source.mp4"           # or "${raw}/lecture.mp4"
+
+cuts:
+  # - id: seg-001              # output filename: seg-001.mp4
+  #   start: 669.0             # start time in seconds
+  #   end: 937.0               # end time in seconds
+
+  # - id: seg-002
+  #   start: 1448.0
+  #   end: 1632.0
+
+  # - id: intro
+  #   start: 0.0
+  #   end: 45.5
