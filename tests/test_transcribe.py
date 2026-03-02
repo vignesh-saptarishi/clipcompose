@@ -196,3 +196,32 @@ class TestTranscribeIntegration:
 
         assert result["diarized"] is False
         assert result["words"][0]["speaker"] is None
+
+
+class TestTranscribeCLI:
+    def test_argparse_defaults(self):
+        """Verify CLI parses args correctly without running transcription."""
+        from clipcompose.transcribe_cli import _parse_args
+
+        args = _parse_args(["source.mp4"])
+        assert args.source == "source.mp4"
+        assert args.model == "medium"
+        assert args.language is None
+        assert args.no_diarize is False
+        assert args.output is None
+
+    def test_argparse_all_flags(self):
+        from clipcompose.transcribe_cli import _parse_args
+
+        args = _parse_args([
+            "video.mp4",
+            "--model", "large-v3",
+            "--language", "en",
+            "--no-diarize",
+            "--output", "out.json",
+        ])
+        assert args.source == "video.mp4"
+        assert args.model == "large-v3"
+        assert args.language == "en"
+        assert args.no_diarize is True
+        assert args.output == "out.json"
