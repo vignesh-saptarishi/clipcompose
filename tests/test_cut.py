@@ -92,3 +92,46 @@ class TestCutBatch:
         cut_batch(str(source_video), cuts, str(out_dir), force=True)
         # Should be a real video now, not "placeholder"
         assert existing.stat().st_size > 100
+
+
+class TestCutCLI:
+    def test_single_cut_cli(self, source_video, tmp_path):
+        from clipcompose.cut_cli import main as cut_main
+        import sys
+
+        out = tmp_path / "cli-clip.mp4"
+        sys.argv = [
+            "clipcompose-cut",
+            str(source_video),
+            "--start", "0.0",
+            "--end", "2.0",
+            "--output", str(out),
+        ]
+        cut_main()
+        assert out.exists()
+
+    def test_batch_cut_cli(self, source_video, tmp_path):
+        import yaml
+        from clipcompose.cut_cli import main as cut_main
+        import sys
+
+        # Write a cuts manifest
+        manifest = {
+            "source": str(source_video),
+            "cuts": [
+                {"id": "batch-001", "start": 0.0, "end": 2.0},
+                {"id": "batch-002", "start": 2.0, "end": 4.0},
+            ],
+        }
+        manifest_path = tmp_path / "cuts.yaml"
+        manifest_path.write_text(yaml.dump(manifest))
+
+        out_dir = tmp_path / "batch-clips"
+        sys.argv = [
+            "clipcompose-cut",
+            "--manifest", str(manifest_path),
+            "--output-dir", str(out_dir),
+        ]
+        cut_main()
+        assert (out_dir / "batch-001.mp4").exists()
+        assert (out_dir / "batch-002.mp4").exists()
