@@ -10,3 +10,4 @@ build/
 .venv/
 examples/demo-clips/
 examples/demo-renders/
+scad-*.yml
