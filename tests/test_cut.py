@@ -97,23 +97,19 @@ class TestCutBatch:
 class TestCutCLI:
     def test_single_cut_cli(self, source_video, tmp_path):
         from clipcompose.cut_cli import main as cut_main
-        import sys
 
         out = tmp_path / "cli-clip.mp4"
-        sys.argv = [
-            "clipcompose-cut",
+        cut_main([
             str(source_video),
             "--start", "0.0",
             "--end", "2.0",
             "--output", str(out),
-        ]
-        cut_main()
+        ])
         assert out.exists()
 
     def test_batch_cut_cli(self, source_video, tmp_path):
         import yaml
         from clipcompose.cut_cli import main as cut_main
-        import sys
 
         # Write a cuts manifest
         manifest = {
@@ -127,11 +123,9 @@ class TestCutCLI:
         manifest_path.write_text(yaml.dump(manifest))
 
         out_dir = tmp_path / "batch-clips"
-        sys.argv = [
-            "clipcompose-cut",
+        cut_main([
             "--manifest", str(manifest_path),
             "--output-dir", str(out_dir),
-        ]
-        cut_main()
+        ])
         assert (out_dir / "batch-001.mp4").exists()
         assert (out_dir / "batch-002.mp4").exists()

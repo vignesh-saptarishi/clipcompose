@@ -10,10 +10,10 @@ Usage:
 """
 
 import argparse
-import sys
+from pathlib import Path
 
 from .cut import cut_single, cut_batch
-from .cuts_manifest import load_cuts_manifest, validate_cuts_source
+from .cuts_manifest import load_cuts_manifest
 
 
 def main(args=None):
@@ -89,7 +89,6 @@ def main(args=None):
         source = parsed.source or config["source"]
 
         # Validate the final resolved source, not the manifest's.
-        from pathlib import Path
         if not Path(source).exists():
             raise FileNotFoundError(f"Source video not found: {source}")
 

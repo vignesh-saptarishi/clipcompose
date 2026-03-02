@@ -653,7 +653,7 @@ Produces a JSON transcript with word-level timestamps and optional speaker diari
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--model` | `base` | faster-whisper model size (`tiny`, `base`, `small`, `medium`, `large`) |
+| `--model` | `medium` | faster-whisper model size (`tiny`, `base`, `small`, `medium`, `large-v3`) |
 | `--language` | auto-detect | Force a specific language code (e.g. `en`) |
 | `--no-diarize` | off | Skip speaker diarization (omits `speaker` field from words) |
 | `--output` | `<source>.json` | Output path for transcript JSON |
@@ -691,7 +691,7 @@ Extracts multiple segments from one or more source files, driven by a cuts manif
 **Cuts manifest format:**
 
 ```yaml
-source: "interview.mp4"      # default source for all cuts (can be overridden per cut)
+source: "interview.mp4"      # or "${footage}/interview.mp4"
 paths:
   footage: "/data/footage"   # optional ${var} substitution
 
@@ -702,7 +702,6 @@ cuts:
   - id: key-moment
     start: 142.3
     end: 167.0
-    source: "${footage}/b-roll.mp4"   # per-cut source override
 ```
 
 Output filenames default to `<id>.mp4` within `--output-dir`.
@@ -744,6 +743,7 @@ src/clipcompose/
 examples/
     template-spatial.yaml    # all 9 templates documented with field tables and examples
     template-assembly.yaml   # assembly manifest template with transition types
+    template-cuts.yaml       # cuts manifest template with field documentation
 ```
 
 ## What This Does NOT Include

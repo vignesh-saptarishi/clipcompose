@@ -27,11 +27,18 @@ pytest tests/ -v
 | `cli.py` | Spatial composition CLI entry point |
 | `assembly_manifest.py` | YAML manifest validation for temporal assembly |
 | `assemble_cli.py` | Native ffmpeg temporal assembly CLI entry point |
+| `main.py` | Subcommand dispatcher (`clipcompose {compose,assemble,transcribe,cut}`) |
+| `cuts_manifest.py` | YAML manifest validation for batch video cutting |
+| `cut.py` | Video cutting operations (`cut_single`, `cut_batch`) via ffmpeg |
+| `cut_cli.py` | Cut CLI — single cut or batch from YAML manifest |
+| `transcribe.py` | Transcription pipeline — faster-whisper + pyannote (import-guarded) |
+| `transcribe_cli.py` | Transcribe CLI — word-level timestamps + speaker diarization |
 
 ## Entry Points
 
-- `clipcompose` → `clipcompose.cli:main`
-- `clipcompose-assemble` → `clipcompose.assemble_cli:main`
+- `clipcompose` → `clipcompose.main:main` (subcommand dispatcher)
+- `clipcompose-compose` → `clipcompose.cli:main` (deprecated alias)
+- `clipcompose-assemble` → `clipcompose.assemble_cli:main` (deprecated alias)
 
 ## Conventions
 
@@ -46,3 +53,10 @@ pytest tests/ -v
 - `Pillow` — text rendering, image composition
 - `moviepy>=2.0` — video I/O, compositing
 - `PyYAML` — manifest parsing
+
+### Optional (transcribe)
+
+- `faster-whisper` — speech-to-text
+- `pyannote.audio` — speaker diarization
+
+Install with: `pip install clipcompose[transcribe]`
